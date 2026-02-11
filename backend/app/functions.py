@@ -55,7 +55,7 @@ class DB:
         '''ADD A NEW STORAGE LOCATION TO COLLECTION'''
         try:
             remotedb 	= self.remoteMongo('mongodb://%s:%s@%s:%s' % (self.username, self.password,self.server,self.port), tls=self.tls)
-            result      = remotedb.ELET2415.climo.insert_one(data)
+            result      = remotedb.Hydro.climo.insert_one(data)
         except Exception as e:
             msg = str(e)
             if "duplicate" not in msg:
@@ -111,25 +111,33 @@ class DB:
             print("frequencyDistro error ",msg)            
         else:                  
             return result
-        
- 
-
-
 
 def main():
-    from config import Config
-    from time import time, ctime, sleep
-    from math import floor
-    from datetime import datetime, timedelta
-    one = DB(Config)
- 
- 
-    start = time() 
-    end = time()
-    print(f"completed in: {end - start} seconds")
-    
+     from config import Config
+     from time import time, ctime, sleep
+
+     # 1. Initialize the Database class
+     one = DB(Config)
+
+     # 2. Initialize the MQTT class and PASS the 'one' database instance to it
+     # This is what allows your update function to talk to MongoDB
+     client = MQTT(one)
+
+     # 3. Start the network loop in the background
+     client.client.loop_start()
+     print("Backend is officially running and listening for data...")
+
+     # 4. Keep the script from closing
+     try:
+         while True:
+             sleep(1)
+     except KeyboardInterrupt:
+         print("Shutting down...")
+         client.client.loop_stop()
+
+
 if __name__ == '__main__':
-    main()
+     main()
 
 
     

@@ -16,7 +16,7 @@ class MQTT:
     ID = f"IOT_B_{randint(1,1000000)}"
 
     #  1. DEFINE ALL TOPICS TO SUBSCRIBE TO. BELOW ARE SOME EXAMPLES. YOUR ARE REQUIRED TO CHANGE THESE TO TOPICS THAT FITS YOUR USE CASE
-    sub_topics = [("620012345_pub", 0), ("620012345", 0), ("620012345_sub", 0)] #  A list of tuples of (topic, qos). Both topic and qos must be present in the tuple.
+    sub_topics = [("620170239_pub",0), ("620170239_sub", 0)] #  A list of tuples of (topic, qos). Both topic and qos must be present in the tuple.
 
 
     def __init__(self,mongo):
@@ -33,13 +33,16 @@ class MQTT:
         self.client.on_subscribe    = self.on_subscribe
 
 
+
+
         # 3. REGISTER CALLBACK FUNCTION(S) FOR EACH TOPIC USING THE self.client.message_callback_add("topic",self.function) FUNCTION
         # WHICH TAKES A TOPIC AND THE NAME OF THE CALLBACK FUNCTION YOU HAVE CREATED FOR THIS SPECIFIC TOPIC
+        self.client.message_callback_add("620170239_pub", self.update)
 
          
 
         # 4. UPDATE MQTT SERVER AND PORT INFORMATION BELOW
-        self.client.connect_async("localhost", 1883, 60)
+        self.client.connect_async("www.yanacreations.com", 1883, 60)
        
 
 
@@ -79,9 +82,25 @@ class MQTT:
     def on_disconnect(self, client, userdata, rc):
         if rc != 0:
             print("MQTT: Unexpected Disconnection.")
+
+            # 2. DEFINE CALLBACK FUNCTIONS(S) BELOW
+    def update(self, client, userdata, msg):
+                '''Called when sensor data is published by the hardware'''
+                try:
+                    # Decode the JSON data from the hardware
+                    data = self.loads(msg.payload.decode("utf-8"))
+
+                    # Use the 'addUpdate' function from your DB class to save to 'climo'
+                    if self.mongo.addUpdate(data):
+                        print(f"MQTT: Success! Data from {msg.topic} saved to climo collection.")
+                    else:
+                        print("MQTT: Database insert failed (Possible duplicate timestamp).")
+
+                except Exception as e:
+                    print(f"MQTT: update function error: {str(e)}")
    
 
-    # 2. DEFINE CALLBACK FUNCTIONS(S) BELOW FOR EACH TOPIC(S) THE BACKEND SUBSCRIBES TO 
+
      
 
 

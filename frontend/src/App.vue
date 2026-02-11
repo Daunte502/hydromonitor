@@ -1,7 +1,13 @@
 <template>
    
   <VApp class="bg-background"> 
-    <NavBar />
+    <v-navigation-drawer permanent>
+      <v-list>
+        <v-list-item to="/" title="Home"></v-list-item>
+        <v-list-item to="/control" title="Control"></v-list-item>
+        <v-list-item to="/dashboard" title="Dashboard"></v-list-item>
+      </v-list>
+    </v-navigation-drawer>
 
     <VMain class="ma-5" > 
       <RouterView v-slot="{ Component, route}"> 
@@ -18,7 +24,14 @@
 <script setup>
   import { RouterView } from 'vue-router'
   import NavBar from '@/components/NavBar.vue';
- 
+  import { useMqttStore } from '@/store/mqttStore';
+  import { onMounted } from 'vue';
+
+  const mqttStore = useMqttStore();
+
+  onMounted(() => {
+    mqttStore.connect();
+  });
 </script>
 
 <style>
@@ -60,7 +73,7 @@
     0% {
       transform: scale(0);
     }
-    50% {
+      50% {
       transform: scale(1.25);
     }
     100% {
